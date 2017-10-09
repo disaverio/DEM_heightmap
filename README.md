@@ -8,7 +8,9 @@ Tool decorates the map with Google®'s texture at various resolutions (zoom).
 
 ## Example
 
-[Matterhorn](https://en.wikipedia.org/wiki/Matterhorn) map with two different textures:
+[Click to see example](https://disaverio.github.io/DEM_heightmap/) of [Matterhorn](https://en.wikipedia.org/wiki/Matterhorn)!
+
+Screenshot with two different textures:
 
 Sat texture, from Nort-West:
 
