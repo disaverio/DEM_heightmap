@@ -25,8 +25,7 @@
   "moduleType": [],
   "dependencies": {
     "requirejs": "^2.3.5",
-    "domReady": "^2.0.1",
-    "threejs-dist": "^0.68.2"
+    "domReady": "^2.0.1"
   },
   "repository": {}
 }
