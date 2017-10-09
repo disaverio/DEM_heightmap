@@ -22,7 +22,7 @@ Terrain texture, from South-East:
 
 Configure `params.js` file with your Google® API key, correct references to DEM files' folder and right filename format (with other file's properties):
 
-```json
+```js
 return {
     google: {
         API_KEY: ''
