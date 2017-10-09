@@ -23,27 +23,29 @@ Terrain texture, from South-East:
 Configure `params.js` file with your Google® API key, correct references to DEM files' folder and right filename format (with other file's properties):
 
 ```json
-google: {
-    API_KEY: ''
-},
-dem: {
-    bil: {
-        format: ".bil",
-        folder: "dem_files/bil/",
-        filename: "{{NS}}{{LAT}}_{{WE}}{{LON}}_1arc_v3",
-        endianness: "little",
-        uppercaseName: false,
-        overlap: false
+return {
+    google: {
+        API_KEY: ''
     },
-    hgt: {
-        format: ".hgt",
-        folder: "dem_files/hgt/",
-        filename: "{{NS}}{{LAT}}{{WE}}{{LON}}",
-        endianness: "big",
-        uppercaseName: true,
-        overlap: false
+    dem: {
+        bil: {
+            format: ".bil",
+            folder: "dem_files/bil/",
+            filename: "{{NS}}{{LAT}}_{{WE}}{{LON}}_1arc_v3",
+            endianness: "little",
+            uppercaseName: false,
+            overlap: false
+        },
+        hgt: {
+            format: ".hgt",
+            folder: "dem_files/hgt/",
+            filename: "{{NS}}{{LAT}}{{WE}}{{LON}}",
+            endianness: "big",
+            uppercaseName: true,
+            overlap: false
+        }
     }
-}
+};
 ```
 
 Then create an instance of App, and invoke .render() method:
