@@ -27,7 +27,7 @@
 define([], function () {
     return {
         google: {
-            API_KEY: 'AIzaSyAMZGmhCYmv6gFZwFzhnTYxZWrjBCQ2jg4'
+            API_KEY: ''
         },
         dem: {
             bil: {
