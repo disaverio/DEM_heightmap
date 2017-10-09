@@ -2,7 +2,7 @@ requirejs.config({
     baseUrl: ".",
     paths: {
         domReady:           'bower_components/domReady/domReady',
-        threejs:            'http://threejs.org/build/three.min',
+        threejs:            'bower_components/threejs-dist/three.min',
         async:              'src/lib/async-master/src/async',
         GoogleCoords:       'src/GoogleCoords',
         utils:              'src/utils',
