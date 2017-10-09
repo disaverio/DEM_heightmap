@@ -1,0 +1,31 @@
+{
+  "name": "dem-threejs",
+  "description": "Dem to threejs render",
+  "main": [],
+  "authors": [
+    {
+      "name": "Andrea Di Saverio",
+      "email": "disaverio.andrea@gmail.com",
+      "homepage": "http://andreads.it"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "dem",
+    "threejs"
+  ],
+  "moduleType": [],
+  "dependencies": {
+    "requirejs": "^2.3.5",
+    "domReady": "^2.0.1"
+  },
+  "repository": {}
+}
