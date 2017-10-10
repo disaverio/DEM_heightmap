@@ -33,7 +33,7 @@ define(['async', 'threejs', 'utils', 'GoogleCoords', 'params'], function (async,
         this.coords = new GoogleCoords();
     }
 
-    GoogleTexture.prototype.URL = 'https://maps.googleapis.com/maps/api/staticmap?center={{LAT}},{{LON}}&zoom={{ZOOM}}&size={{SIZE}}x{{SIZE}}&scale=2&maptype={{MAPTYPE}}';
+    GoogleTexture.prototype.URL = 'https://maps.googleapis.com/maps/api/staticmap?center={{LAT}},{{LON}}&zoom={{ZOOM}}&size={{SIZE}}x{{SIZE}}&scale=2&maptype={{MAPTYPE}}&key={{API_KEY}}';
 
     GoogleTexture.prototype.getTextureVerticesInPixelCoords = function (centerLatLon, zoom, size) {
 
