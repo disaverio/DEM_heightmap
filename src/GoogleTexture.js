@@ -43,7 +43,7 @@ define(['async', 'threejs', 'utils', 'GoogleCoords', 'params'], function (async,
             tl: {x: centerPixelCoords.x - size / 2, y: centerPixelCoords.y - size / 2},
             tr: {x: centerPixelCoords.x + size / 2, y: centerPixelCoords.y - size / 2},
             bl: {x: centerPixelCoords.x - size / 2, y: centerPixelCoords.y + size / 2},
-            br: {x: centerPixelCoords.x + size / 2, y: centerPixelCoords.y + size / 2},
+            br: {x: centerPixelCoords.x + size / 2, y: centerPixelCoords.y + size / 2}
         }
     };
 
