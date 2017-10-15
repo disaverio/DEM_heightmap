@@ -9,6 +9,7 @@ requirejs.config({
         params:             'src/params',
         Dem:                'src/Dem',
         GoogleTexture:      'src/GoogleTexture',
+        Texture:            'src/Texture',
         App:                'src/App',
         OrbitControls:      'src/lib/threejs/OrbitControls'
     },

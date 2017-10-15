@@ -125,9 +125,8 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
             var httpReq = new XMLHttpRequest();
             httpReq.open('GET', file, true);
             httpReq.responseType = 'arraybuffer';
-            (function(deferred, file) {
-                httpReq.onload = function (event) {
-                    // deferred.resolve(new Int16Array(this.response));
+            httpReq.onload = (function(deferred, file) {
+                return function (event) {
                     deferred.resolve(getInt16Array.call(self, this.response, file));
                 };
             })(deferred, file);
@@ -187,6 +186,8 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
          * normalize dem map to a desired NxM dimension
          */
 
+        params = params || {};
+
         var outputColumns, outputLines;
 
         if (params.multipleOf) {
@@ -201,6 +202,9 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
         } else if (params.outputLines && params.outputColumns) {
             outputColumns = params.outputColumns;
             outputLines = params.outputLines;
+        } else {
+            outputColumns = dem.columns;
+            outputLines = dem.lines;
         }
 
 
@@ -211,6 +215,10 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
         };
 
         function normalize(demMap, hPoints, vPoints, hPointsDesired, vPointsDesired) {
+
+            if (hPoints == hPointsDesired && vPoints == vPointsDesired) {
+                return demMap;
+            }
 
             // relative to original length
             var hSegmentRelativeLength = (hPoints - 1) / (hPointsDesired - 1);

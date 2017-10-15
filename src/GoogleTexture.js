@@ -24,16 +24,17 @@
 
 "use strict";
 
-define(['async', 'threejs', 'utils', 'GoogleCoords'], function (async, THREE, utils, GoogleCoords) {
+define(['async', 'utils', 'GoogleCoords'], function (async, utils, GoogleCoords) {
 
     var MAX_TEXTURE_SIZE = 512;
+    var MAP_SCALE = 2;
 
     function GoogleTexture(googleApiKey) {
         this.API_KEY = googleApiKey;
         this.coords = new GoogleCoords();
     }
 
-    GoogleTexture.prototype.URL = 'https://maps.googleapis.com/maps/api/staticmap?center={{LAT}},{{LON}}&zoom={{ZOOM}}&size={{SIZE}}x{{SIZE}}&scale=2&maptype={{MAPTYPE}}&key={{API_KEY}}';
+    GoogleTexture.prototype.URL = 'https://maps.googleapis.com/maps/api/staticmap?center={{LAT}},{{LON}}&zoom={{ZOOM}}&size={{SIZE}}x{{SIZE}}&scale=' + MAP_SCALE + '&maptype={{MAPTYPE}}&key={{API_KEY}}';
 
     GoogleTexture.prototype.getTextureVerticesInPixelCoords = function (centerLatLon, zoom, size) {
 
@@ -78,13 +79,13 @@ define(['async', 'threejs', 'utils', 'GoogleCoords'], function (async, THREE, ut
         getUrls.call(this).forEach(function(url) {
             var deferred = async.defer();
 
-            var loader = new THREE.TextureLoader();
-            loader.crossOrigin = true;
-            loader.load(url,
-                function(texture) { deferred.resolve(texture); },
-                function() {},
-                function(error) { deferred.reject(error); }
-            );
+            var image = new Image();
+            image.src = url;
+            image.onload = (function(deferred, image) {
+                return function() {
+                    deferred.resolve(image);
+                };
+            })(deferred, image);
 
             promises.push(deferred.promise);
         });

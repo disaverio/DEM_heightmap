@@ -24,49 +24,37 @@
 
 "use strict";
 
-define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], function (THREE, OrbitControls, Dem, GoogleTexture, async, utils) {
+define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 'utils'], function (THREE, OrbitControls, Dem, GoogleTexture, Texture, async, utils) {
 
-    var setElevations = function(demMap, lines, columns, texturesForSize, geometries, geometryWidth, geometryHeight, min, scaleFactor, incrementPercent) {
+    function onMouseMove(mouse, renderer, camera, mapInfo, raycaster, event) {
+
+        mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        var intersect = raycaster.intersectObject(mapInfo.mesh);
+
+        if (intersect.length > 0) {
+            console.log((intersect[0].point.y / mapInfo.scaleFactor + mapInfo.minMax.min.value));
+        }
+    }
+
+    var setElevations = function(demMap, lines, columns, geometry, min, max, scaleFactor, percentElevation) {
 
         var completed = true;
 
-        incrementPercent = incrementPercent || 1;
+        percentElevation = percentElevation || 1;
 
-        var geomVIndex = 0;
-        var previousGeomVIndex = 0;
-        var resetVIndex = false;
-        var tileLineIndex = 0;
+        var color = new THREE.Color(0, 1, 0);
+
         for (var i = 0; i < lines; i++) {
-
-            geomVIndex = Math.floor(i / geometryHeight);
-
-            resetVIndex = false;
-            if (previousGeomVIndex != geomVIndex) {
-                resetVIndex = true;
-                previousGeomVIndex = geomVIndex;
-                geomVIndex--;
-            }
-
-            var geomHIndex = 0;
-            var resetHIndex = false;
-            var previousGeomHIndex = 0;
-            var tileColumnIndex = 0;
             for (var j = 0; j < columns; j++) {
 
-                geomHIndex = Math.floor(j / geometryWidth);
-
-                resetHIndex = false;
-                if (previousGeomHIndex != geomHIndex) {
-                    resetHIndex = true;
-                    previousGeomHIndex = geomHIndex;
-                    geomHIndex--;
-                }
-
                 var height = demMap[i * columns + j] * scaleFactor;
-                var transposedVal = height - min;
-                var increment = transposedVal * incrementPercent;
+                var transposedVal = height - min * scaleFactor; // move to ground
 
-                var currentVal = geometries[geomVIndex * texturesForSize + geomHIndex].attributes.position.array[((geometryWidth + 1) * tileLineIndex + tileColumnIndex) * 3 + 2];
+                var increment = transposedVal * percentElevation; // for animation
+                var currentVal = geometry.attributes.position.array[(columns * i + j) * 3 + 2];
                 var newVal = currentVal + increment;
 
                 if (transposedVal == 0 || newVal / transposedVal > 0.99) {
@@ -75,100 +63,180 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
                     completed = false;
                 }
 
-                geometries[geomVIndex * texturesForSize + geomHIndex].attributes.position.array[((geometryWidth + 1) * tileLineIndex + tileColumnIndex) * 3 + 2] = newVal; // <-- for PlaneBufferGeometry
-                // geometry.vertices[i*lines+j].setZ(height-min); // <-- for PlaneGeometry
-
-                if (resetHIndex && j + 1 != columns) {
-                    j--;
-                    tileColumnIndex = 0;
-                } else {
-                    previousGeomHIndex = geomHIndex;
-                    tileColumnIndex++;
+                if (geometry.attributes.color) {
+                    geometry.attributes.color.array[(columns * i + j) * 3] = color.r * (newVal / (max - min) * 20 + 0.2);
+                    geometry.attributes.color.array[(columns * i + j) * 3 + 1] = color.g * (newVal / (max - min) * 20 + 0.2);
+                    geometry.attributes.color.array[(columns * i + j) * 3 + 2] = color.b * (newVal / (max - min) * 20 + 0.2);
                 }
-            }
 
-            if (resetVIndex && i + 1 != lines) {
-                i--;
-                tileLineIndex = 0;
-            } else {
-                previousGeomVIndex = geomVIndex;
-                tileLineIndex++;
+                geometry.attributes.position.array[(columns * i + j) * 3 + 2] = newVal; // <-- for PlaneBufferGeometry
+                // geometry.vertices[i*lines+j].setZ(height-min); // <-- for PlaneGeometry
             }
         }
 
-        for(var i=0; i<geometries.length; i++) {
-            geometries[i].attributes.position.needsUpdate = true;
-        }
+        geometry.attributes.position.needsUpdate = true;
 
         return completed;
-
     };
 
-    function renderScene(scene, textures, dem, scaleFactor, sceneExtension, sceneDimension) {
+    function renderMap(type, scene, texture, dem, scaleFactor, latExtension) {
 
         scaleFactor = getScaleFactor(scaleFactor);
 
-        var texturesForSize = Math.sqrt(textures.length);
+        var geometryWidth = (dem.columns - 1);
+        var geometryHeight = (dem.lines - 1);
 
-        var geometryDimension = sceneDimension / texturesForSize;
-        var geometryWidth = (dem.columns - 1) / texturesForSize;
-        var geometryHeight = (dem.lines - 1) / texturesForSize;
+        var geometry = getGeometry(geometryWidth, geometryHeight);
 
-        var geometries = [];
-        for (var i=0; i<textures.length; i++) {
-            geometries.push(new THREE.PlaneBufferGeometry(geometryDimension, geometryDimension, geometryWidth, geometryHeight));
-        }
+        var minMax = getMinMax();
 
-        var min = Number.MAX_SAFE_INTEGER;
-        for (var i = 0; i < dem.lines; i++) {
-            for (var j = 0; j < dem.columns; j++) {
-                var height = dem.dem[i * dem.columns + j] * scaleFactor;
-                min = (height > 0 && height < min) ? height : min;
+        setElevations = setElevations.bind(null, dem.dem, dem.lines, dem.columns, geometry, minMax.min.value, minMax.min.value, scaleFactor);
+
+        var mesh = setMesh();
+
+        return {
+            mesh: mesh,
+            minMax: minMax,
+            scaleFactor: scaleFactor
+        };
+
+        function getGeometry(geometryWidth, geometryHeight) {
+
+            return type == 'points' ? getPointsGeometry() : getPlaneGeometry();
+
+            function getPlaneGeometry() {
+                return new THREE.PlaneBufferGeometry(1, 1, geometryWidth, geometryHeight);
+            }
+
+            function getPointsGeometry() {
+
+                var color = new THREE.Color(1, 0, 0);
+                var numPoints = dem.columns * dem.lines;
+
+                var positions = new Float32Array(numPoints * 3);
+                var colors = new Float32Array(numPoints * 3);
+
+                var idx = 0;
+
+                for( var i = 0; i < dem.lines; i++ ) {
+                    for( var j = 0; j < dem.columns; j++ ) {
+
+                        var u = 1- i / dem.lines;
+                        var v =  j / dem.columns;
+                        var x = u - 0.5;
+                        var z = v - 0.5;
+
+                        positions[3 * idx] = z;
+                        positions[3 * idx + 1] = x;
+                        positions[3 * idx + 2] = 0;
+
+                        colors[3 * idx] = color.r;
+                        colors[3 * idx + 1] = color.g;
+                        colors[3 * idx + 2] = color.b;
+
+                        idx++;
+                    }
+                }
+
+                var geometry = new THREE.BufferGeometry();
+
+                geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+                geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+                geometry.computeBoundingBox();
+
+                return geometry;
             }
         }
-
-        setElevations = setElevations.bind(null, dem.dem, dem.lines, dem.columns, texturesForSize, geometries, geometryWidth, geometryHeight, min, scaleFactor);
-
-        var planes = [];
-        var idx = 0;
-        textures.forEach(function(texture) {
-            planes.push(new THREE.Mesh(geometries[idx], new THREE.MeshBasicMaterial({ map: texture })));
-            idx++;
-        });
-
-        for (var i=0; i<texturesForSize; i++) {
-            for (var j=0; j<texturesForSize; j++) {
-                var plane = planes[i*texturesForSize + j];
-                plane.rotateX(Math.PI / -2);
-                plane.rotateZ(Math.PI / 2);
-                plane.position.x =  geometryDimension / 2 + geometryDimension * i;
-                plane.position.z = - geometryDimension / 2 + geometryDimension * (texturesForSize - j);
-                scene.add(plane);
-            }
-        }
-
 
         function getScaleFactor(scaleFactor) {
 
-            var EQUATOR_LENGTH = 40075036; // meters, (elevation data are in meters)
-            var sceneLength = (EQUATOR_LENGTH / 360) * sceneExtension; // meters
+            var EQUATOR_LENGTH = 40075036; // meters (elevation data are in meters)
+            var sceneLength = (EQUATOR_LENGTH / 360) * latExtension; // meters
 
-            return (sceneDimension / sceneLength) * scaleFactor;
+            return (1/sceneLength) * scaleFactor;
+        }
+
+        function getMinMax() {
+
+            var min = Number.MAX_SAFE_INTEGER;
+            var max = Number.MIN_SAFE_INTEGER;
+            var minLine = -1;
+            var minColumn = -1;
+            var maxLine = -1;
+            var maxColumn = -1;
+
+            for (var i = 0; i < dem.lines; i++) {
+                for (var j = 0; j < dem.columns; j++) {
+
+                    var height = dem.dem[i * dem.columns + j];
+
+                    if (height > 0 && height < min) { // check height > 0 to control overflowed values
+                        min = height;
+                        minLine = i;
+                        minColumn = j;
+                    }
+
+                    if (height > max) {
+                        max = height;
+                        maxLine = i;
+                        maxColumn = j;
+                    }
+                }
+            }
+
+            return {
+                min: {
+                    value: min,
+                    line: minLine,
+                    column: minColumn
+                },
+                max: {
+                    value: max,
+                    line: maxLine,
+                    column: maxColumn
+                }
+            };
+        }
+
+        function setMesh() {
+
+            var mesh;
+
+            switch (type) {
+                case 'texture':
+                    mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture }));
+                    break;
+                case 'grid':
+                    mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }));
+                    break;
+                case 'points':
+                    mesh = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.005, vertexColors: THREE.VertexColors }));
+                    break;
+            }
+
+            mesh.rotateX(Math.PI / -2);
+            mesh.rotateZ(Math.PI / 2);
+            mesh.position.x =  1/2;
+            mesh.position.z = 1/2;
+
+            scene.add(mesh);
+
+            return mesh;
         }
     }
 
-    function createScene(document, sceneDimension) {
+    function createScene(document) {
 
         var windowWidth  = utils.getWidth(document);
         var windowHeight = utils.getHeight(document);
 
         var scene = new THREE.Scene();
 
-        var axes = new THREE.AxisHelper(sceneDimension);
+        var axes = new THREE.AxisHelper();
         scene.add(axes);
 
         var camera = new THREE.PerspectiveCamera(45, windowWidth / windowHeight, 0.1, 1000);
-        camera.position.set(sceneDimension * 1.4, sceneDimension / 2, sceneDimension * 1.4 );
+        camera.position.set(1.4, 1/2, 1.4);
 
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(windowWidth-20, windowHeight-20);
@@ -183,20 +251,22 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
 
         var controls = new THREE.OrbitControls(camera);
 
-        document.getElementById('container').appendChild(renderer.domElement);
+        var container = document.getElementById('container').appendChild(renderer.domElement);
 
         return {
             scene: scene,
             renderer: renderer,
             controls: controls,
-            camera: camera
+            camera: camera,
+            container: container
         }
     }
 
     function App(document, googleApiKey, demType) {
         this.document = document;
         this.dem = new Dem(demType);
-        this.texture = new GoogleTexture(googleApiKey);
+        this.gTexture = new GoogleTexture(googleApiKey);
+        this.texture = new Texture();
     }
 
     App.prototype.render = function(lat, lon, params) {
@@ -212,16 +282,15 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
                               params.detailsLevel < 0 ? 0 :
                                                         (params.detailsLevel || 0);
         params.textureType = params.textureType || "satellite";
-        params.withAnimation = params.withAnimation == true;
-
-        var sceneDimension = 1 << params.detailsLevel;
+        params.withAnimation = params.withAnimation != false;
+        params.type = params.type || 'texture';
 
         var latLon = {
             lat: lat,
             lon: lon
         };
 
-        var sceneVertices = this.texture.getTextureVerticesCoords(latLon, params.zoom, params.size);
+        var sceneVertices = this.gTexture.getTextureVerticesCoords(latLon, params.zoom, params.size);
         var coordsLimits = {
             topLat: sceneVertices.tl.lat,
             botLat: sceneVertices.br.lat,
@@ -231,16 +300,21 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
 
         var allPromises = [];
 
-        allPromises.push(this.dem.getDem(coordsLimits, { multipleOf: 1 << params.detailsLevel }));
+        allPromises.push(this.dem.getDem(coordsLimits));
 
         if (params.type == 'texture') {
-            allPromises.push(this.texture.load(latLon, params.zoom, params.size, params.detailsLevel, params.textureType));
+            allPromises.push(this.gTexture.load(latLon, params.zoom, params.size, params.detailsLevel, params.textureType));
         }
+
+        var scene = createScene(this.document);
 
         async.all(allPromises)
             .then((function(response) {
 
-                renderScene(scene.scene, response[1], response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat, sceneDimension);
+                var texture = response[1] ? this.texture.combineTextures(response[1]) : undefined;
+                var mapInfo = renderMap(params.type, scene.scene, texture, response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat);
+
+                scene.container.addEventListener('mousemove', onMouseMove.bind(null, new THREE.Vector2(), scene.renderer, scene.camera, mapInfo, new THREE.Raycaster()), false);
 
                 var completed = false;
                 var increment;
@@ -256,10 +330,8 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
                     requestAnimationFrame(render);
                     scene.renderer.render(scene.scene, scene.camera);
                 })();
-            }).bind(this));
-
-
-        var scene = createScene(this.document, sceneDimension);
+            }).bind(this))
+            .catch(console.log);
     };
 
     return App;

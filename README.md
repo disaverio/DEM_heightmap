@@ -87,6 +87,8 @@ where `selected_dem_format` is a string with dem to use, configured in `params.j
 
 - `textureType`: String, `'terrain'`, `'satellite'`, `'roadmap'`, `'hybrid'` from Google®. Default: `'satellite'`.
 
+- `type`: String, one between `texture`, `grid`, `points`. Default: `'texture'`
+
 ### Other
 
 Tool uses [async](https://github.com/disaverio/async) as lightweight [Q](https://github.com/kriskowal/q) replacement for async calls management.
