@@ -104,7 +104,7 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
 
     };
 
-    function createRender(scene, textures, dem, scaleFactor, sceneExtension, sceneDimension) {
+    function renderScene(scene, textures, dem, scaleFactor, sceneExtension, sceneDimension) {
 
         scaleFactor = getScaleFactor(scaleFactor);
 
@@ -211,7 +211,7 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
         params.detailsLevel = params.detailsLevel > 4 ? 4 :
                               params.detailsLevel < 0 ? 0 :
                                                         (params.detailsLevel || 0);
-        params.mapType = params.mapType || "satellite";
+        params.textureType = params.textureType || "satellite";
         params.withAnimation = params.withAnimation == true;
 
         var sceneDimension = 1 << params.detailsLevel;
@@ -221,20 +221,27 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'async', 'utils'], f
             lon: lon
         };
 
-        var textureVertices = this.texture.getTextureVerticesCoords(latLon, params.zoom, params.size);
+        var sceneVertices = this.texture.getTextureVerticesCoords(latLon, params.zoom, params.size);
         var coordsLimits = {
-            topLat: textureVertices.tl.lat,
-            botLat: textureVertices.br.lat,
-            leftLon: textureVertices.tl.lon,
-            rightLon: textureVertices.br.lon
+            topLat: sceneVertices.tl.lat,
+            botLat: sceneVertices.br.lat,
+            leftLon: sceneVertices.tl.lon,
+            rightLon: sceneVertices.br.lon
         };
 
-        var texturePromise = this.texture.load(latLon, params.zoom, params.size, params.detailsLevel, params.mapType);
-        var demPromise = this.dem.getDem(coordsLimits, { multipleOf: 1 << params.detailsLevel });
+        var allPromises = [];
 
-        async.all([texturePromise, demPromise])
+        allPromises.push(this.dem.getDem(coordsLimits, { multipleOf: 1 << params.detailsLevel }));
+
+        if (params.type == 'texture') {
+            allPromises.push(this.texture.load(latLon, params.zoom, params.size, params.detailsLevel, params.textureType));
+        }
+
+        async.all(allPromises)
             .then((function(response) {
-                createRender(scene.scene, response[0], response[1], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat, sceneDimension);
+
+                renderScene(scene.scene, response[1], response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat, sceneDimension);
+
                 var completed = false;
                 var increment;
                 if (params.withAnimation) increment = 0.05;

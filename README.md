@@ -85,7 +85,7 @@ where `selected_dem_format` is a string with dem to use, configured in `params.j
 
 - `withAnimation`: Boolean, if true map elevation is animated. Default: `false`.
 
-- `mapType`: String, `'terrain'`, `'satellite'`, `'roadmap'`, `'hybrid'` from Google®. Default: `'satellite'`.
+- `textureType`: String, `'terrain'`, `'satellite'`, `'roadmap'`, `'hybrid'` from Google®. Default: `'satellite'`.
 
 ### Other
 

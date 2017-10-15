@@ -24,7 +24,7 @@
 
 "use strict";
 
-define(['async', 'threejs', 'utils', 'GoogleCoords', 'params'], function (async, THREE, utils, GoogleCoords, params) {
+define(['async', 'threejs', 'utils', 'GoogleCoords'], function (async, THREE, utils, GoogleCoords) {
 
     var MAX_TEXTURE_SIZE = 512;
 

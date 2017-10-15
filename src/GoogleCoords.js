@@ -24,7 +24,7 @@
 
 "use strict";
 
-define(['params'], function (params) {
+define([], function () {
 
     function GoogleCoords() {
         this.TILE_SIZE = 256;

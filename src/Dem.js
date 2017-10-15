@@ -86,7 +86,7 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
                 minLat: botLat,
                 minLon: leftLon,
                 maxLat: topLat,
-                maxLon: rightLon,
+                maxLon: rightLon
             },
             requestedArea: {
                 tl: { lat: coords.topLat, lon: coords.leftLon },
@@ -336,7 +336,6 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
                 var concatDemResponse = this.concatDems(demsInfo.hSquares, demsInfo.vSquares, demList, demsInfo.overlap);
                 var demPortion = this.getDemPortion(concatDemResponse.concatenatedDem, concatDemResponse.lines, concatDemResponse.columns, demsInfo.limits, demsInfo.requestedArea);
                 var normalizedDem = this.normalizeDem(demPortion, params);
-                normalizedDem.singleDemResolution = Math.sqrt(demList[0].length);
                 deferred.resolve(normalizedDem);
             }).bind(this));
 
