@@ -87,7 +87,7 @@ where `selected_dem_format` is a string with dem to use, configured in `params.j
 
 - `textureType`: String, `'terrain'`, `'satellite'`, `'roadmap'`, `'hybrid'` from Google®. Default: `'satellite'`.
 
-- `type`: String, one between `texture`, `grid`, `points`. Default: `'texture'`
+- `type`: String, one between `'texture'`, `'grid'`, `'points'`. Default: `'texture'`
 
 ### Other
 
