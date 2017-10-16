@@ -29,6 +29,6 @@ define(['App', 'params'], function (App, params) {
 
         var app = new App(document, params.google.API_KEY, 'hgt');
 
-        app.render(45.976581, 7.658447, { zoom: 13, detailsLevel: 3, withAnimation: true,  textureType: "terrain" });
+        app.render(45.976581, 7.658447, { zoom: 13, detailsLevel: 0, withAnimation: true,  textureType: "terrain" });
     });
 });
