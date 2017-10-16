@@ -2,7 +2,7 @@ requirejs.config({
     baseUrl: ".",
     paths: {
         domReady:           'bower_components/domReady/domReady',
-        threejs:            'src/lib/threejs/three.min',
+        threejs:            'bower_components/three.js/build/three.min',
         async:              'src/lib/async-master/src/async',
         GoogleCoords:       'src/GoogleCoords',
         utils:              'src/utils',
@@ -11,7 +11,11 @@ requirejs.config({
         GoogleTexture:      'src/GoogleTexture',
         Texture:            'src/Texture',
         App:                'src/App',
-        OrbitControls:      'src/lib/threejs/OrbitControls'
+        OrbitControls:      'bower_components/three.js/examples/js/controls/OrbitControls',
+        threejsExport:      'src/threejs-export'
+    },
+    shim: {
+        OrbitControls: ['threejsExport']
     },
     deps: ['src/start']
 });
