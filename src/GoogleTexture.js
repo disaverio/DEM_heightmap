@@ -80,7 +80,7 @@ define(['async', 'utils', 'GoogleCoords'], function (async, utils, GoogleCoords)
             var deferred = async.defer();
 
             var image = new Image();
-            image.crossOrigin = "anonymous";
+            image.crossOrigin = true;
             image.src = url;
             image.onload = (function(deferred, image) {
                 return function() {
