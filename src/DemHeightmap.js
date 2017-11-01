@@ -28,7 +28,7 @@
     if (typeof define === 'function' && define.amd) define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 'utils'], factory);
     else {
         global.DH = global.DH || {};
-        global.DH.DemHeightmap = factory(global.DH.threejs, global.DH.OrbitControls, global.DH.Dem, global.DH.GoogleTexture, global.DH.Texture, global.DH.async, global.DH.utils);
+        global.DH.DemHeightmap = factory(global.THREE, global.DH.OrbitControls, global.DH.Dem, global.DH.GoogleTexture, global.DH.Texture, global.async, global.DH.utils);
     }
 })(this, function (THREE, OrbitControls, Dem, GoogleTexture, Texture, async, utils) {
 

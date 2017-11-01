@@ -1,6 +1,6 @@
 # Heightmap
 
-Tool for creation of 3D map of terrain from raster [DEM](https://en.wikipedia.org/wiki/Digital_elevation_model) files. Implementation adopts [three.js](https://threejs.org/), a 3D javascript library.
+Lib for creation of 3D map of terrain from raster [DEM](https://en.wikipedia.org/wiki/Digital_elevation_model) files. Implementation adopts [three.js](https://threejs.org/).
 
 It supports all raster **DEM files** format (.hgt, .bil, etc..) and all resolutions (3 arc seconds, 1 arc seconds, or more) with big/little endianness where each file describes a LATxLON sector.
 
@@ -79,8 +79,10 @@ define(['DemHeightmap'], function (DemHeightmap) {
 
 `LAT`, `LON`: Numbers, center coordinates, mandatories.
 
-`renderConfig` an object with **same** structure of `mainConfiguration.render` passed to constructor: if present general `render` configuration will be overriden.
+`renderConfig` is an object with **same** structure of `mainConfiguration.render` passed to constructor: if present, same properties will overwrite those in general `render` configuration.
 
 ### Other
 
-Tool uses [async](https://github.com/disaverio/async) as lightweight [Q](https://github.com/kriskowal/q) replacement for async calls management.
+Lib uses [async](https://github.com/disaverio/async) as lightweight [Q](https://github.com/kriskowal/q) replacement for async calls management.
+
+In direct inclusion, this lib registers three vars in global scope: `DH`, `async` and `THREE`. 

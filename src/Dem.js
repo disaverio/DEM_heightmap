@@ -28,7 +28,7 @@
     if (typeof define === 'function' && define.amd) define(['async', 'utils'], factory);
     else {
         global.DH = global.DH || {};
-        global.DH.Dem = factory(global.DH.async, global.DH.utils);
+        global.DH.Dem = factory(global.async, global.DH.utils);
     }
 })(this, function (async, utils) {
 

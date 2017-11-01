@@ -28,7 +28,7 @@
     if (typeof define === 'function' && define.amd) define(['async', 'utils', 'GoogleCoords'], factory);
     else {
         global.DH = global.DH || {};
-        global.DH.GoogleTexture = factory(global.DH.async, global.DH.utils, global.DH.GoogleCoords);
+        global.DH.GoogleTexture = factory(global.async, global.DH.utils, global.DH.GoogleCoords);
     }
 })(this, function (async, utils, GoogleCoords) {
 
