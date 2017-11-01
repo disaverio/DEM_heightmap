@@ -22,7 +22,7 @@ Terrain texture, from South-East:
 
 ## Use
 
-`three.js` lib is bundled in compiled file, so all you have to do is include `DemHeightmap.js` with direct include in html page or with an AMD loader.
+Since `three.js` lib is bundled in compiled file, all you have to do is include `DemHeightmap.js` with a direct include in html page or with an AMD loader.
 
 Then create an instance of `DemHeightmap` passing it a configuration object, and invoke `.render()` method:
 
