@@ -24,7 +24,13 @@
 
 "use strict";
 
-define(['async', 'utils', 'params'], function (async, utils, params) {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define(['async', 'utils'], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.Dem = factory(global.DH.async, global.DH.utils);
+    }
+})(this, function (async, utils) {
 
     function _getMachineEndianness() {
 
@@ -94,23 +100,24 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
                 bl: { lat: coords.botLat, lon: coords.leftLon },
                 br: { lat: coords.botLat, lon: coords.rightLon }
             },
-            overlap: params.dem[this.demType].overlap
+            overlap: this.configuration[this.demType].overlap
         };
 
         function getDemFilename(coord) {
 
-            var filename = utils.replace(params.dem[this.demType].filename, coord);
+            var filename = utils.replace(this.configuration[this.demType].filename, coord);
 
-            if (params.dem[this.demType].uppercaseName) {
+            if (this.configuration[this.demType].uppercaseName) {
                 filename = filename.toUpperCase();
             }
 
-            return params.dem[this.demType].folder + filename + params.dem[this.demType].format;
+            return this.configuration[this.demType].folder + filename + this.configuration[this.demType].format;
         }
     }
 
-    function Dem(demType) {
+    function Dem(demType, demConfiguration) {
         this.demType = demType || 'hgt';
+        this.configuration = demConfiguration;
     }
 
     Dem.prototype.load = function(demList) {
@@ -143,7 +150,7 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
 
             var hasOverflowValues = false;
             var overflowedFirstIndex = -1;
-            if (_getMachineEndianness() != params.dem[this.demType].endianness) {
+            if (_getMachineEndianness() != this.configuration[this.demType].endianness) {
 
                 var convertedArraybuffer = new Uint8Array(arraybuffer);
 
@@ -181,27 +188,27 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
         }
     };
 
-    Dem.prototype.normalizeDem = function(dem, params) {
+    Dem.prototype.normalizeDem = function(dem, conf) {
         /*
          * normalize dem map to a desired NxM dimension
          */
 
-        params = params || {};
+        conf = conf || {};
 
         var outputColumns, outputLines;
 
-        if (params.multipleOf) {
+        if (conf.multipleOf) {
             var hSegments = dem.columns - 1;
-            var hSegmentsDesired = hSegments + ((params.multipleOf - (hSegments % params.multipleOf)) %  params.multipleOf);
+            var hSegmentsDesired = hSegments + ((conf.multipleOf - (hSegments % conf.multipleOf)) %  conf.multipleOf);
 
             var vSegments = dem.lines - 1;
-            var vSegmentsDesired = vSegments + ((params.multipleOf - (vSegments % params.multipleOf)) %  params.multipleOf);
+            var vSegmentsDesired = vSegments + ((conf.multipleOf - (vSegments % conf.multipleOf)) %  conf.multipleOf);
 
             outputColumns = hSegmentsDesired + 1;
             outputLines = vSegmentsDesired + 1;
-        } else if (params.outputLines && params.outputColumns) {
-            outputColumns = params.outputColumns;
-            outputLines = params.outputLines;
+        } else if (conf.outputLines && conf.outputColumns) {
+            outputColumns = conf.outputColumns;
+            outputLines = conf.outputLines;
         } else {
             outputColumns = dem.columns;
             outputLines = dem.lines;
@@ -330,7 +337,7 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
         };
     };
 
-    Dem.prototype.getDem = function(coords, params) {
+    Dem.prototype.getDem = function(coords, conf) {
 
         if (!(coords.lat && coords.lon) && !(coords.topLat && coords.botLat && coords.leftLon && coords.rightLon)) {
             throw new Error("Invalid input.");
@@ -343,7 +350,7 @@ define(['async', 'utils', 'params'], function (async, utils, params) {
             .then((function(demList) {
                 var concatDemResponse = this.concatDems(demsInfo.hSquares, demsInfo.vSquares, demList, demsInfo.overlap);
                 var demPortion = this.getDemPortion(concatDemResponse.concatenatedDem, concatDemResponse.lines, concatDemResponse.columns, demsInfo.limits, demsInfo.requestedArea);
-                var normalizedDem = this.normalizeDem(demPortion, params);
+                var normalizedDem = this.normalizeDem(demPortion, conf);
                 deferred.resolve(normalizedDem);
             }).bind(this));
 

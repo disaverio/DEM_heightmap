@@ -24,12 +24,18 @@
 
 "use strict";
 
-define(['async', 'utils', 'GoogleCoords'], function (async, utils, GoogleCoords) {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define(['async', 'utils', 'GoogleCoords'], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.GoogleTexture = factory(global.DH.async, global.DH.utils, global.DH.GoogleCoords);
+    }
+})(this, function (async, utils, GoogleCoords) {
 
-    var MAX_TEXTURE_SIZE = 512;
     var MAP_SCALE = 2;
 
     function GoogleTexture(googleApiKey) {
+        this.MAX_TEXTURE_SIZE = 512;
         this.API_KEY = googleApiKey;
         this.coords = new GoogleCoords();
     }
@@ -102,7 +108,7 @@ define(['async', 'utils', 'GoogleCoords'], function (async, utils, GoogleCoords)
                     LAT: latLon.lat,
                     LON: latLon.lon,
                     ZOOM: targetZoom,
-                    SIZE: size > MAX_TEXTURE_SIZE ? MAX_TEXTURE_SIZE : (size || MAX_TEXTURE_SIZE),
+                    SIZE: size > this.MAX_TEXTURE_SIZE ? this.MAX_TEXTURE_SIZE : (size || this.MAX_TEXTURE_SIZE),
                     API_KEY: this.API_KEY,
                     MAPTYPE: maptype || "satellite"
                 })

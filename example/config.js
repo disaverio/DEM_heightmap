@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-"use strict";
-
-(function(global) {
-    define(['threejs'], function (THREE) {
-        global.THREE = THREE;
-    });
-})(this);
+requirejs.config({
+    baseUrl: ".",
+    paths: {
+        domReady:     '../bower_components/domReady/domReady',
+        DemHeightmap: '../dist/DemHeightmap'
+    },
+    deps: ['start']
+});

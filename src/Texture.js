@@ -24,7 +24,13 @@
 
 "use strict";
 
-define(['threejs'], function (THREE) {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define(['threejs'], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.Texture = factory(global.THREE);
+    }
+})(this, function (THREE) {
 
     function Texture() {}
 

@@ -22,72 +22,64 @@ Terrain texture, from South-East:
 
 ## Use
 
-Configure `params.js` file with your Google® API key, correct references to DEM files' folder and right filename format (with other file's properties):
+`three.js` lib is bundled in compiled file, so all you have to do is include `DemHeightmap.js` with direct include in html page or with an AMD loader.
+
+Then create an instance of `DemHeightmap` passing it a configuration object, and invoke `.render()` method:
 
 ```js
-return {
-    google: {
-        API_KEY: ''
-    },
-    dem: {
-        bil: {
-            format: ".bil",
-            folder: "dem_files/bil/",
-            filename: "{{NS}}{{LAT}}_{{WE}}{{LON}}_1arc_v3",
-            endianness: "little",
-            uppercaseName: false,
-            overlap: false
-        },
-        hgt: {
-            format: ".hgt",
-            folder: "dem_files/hgt/",
-            filename: "{{NS}}{{LAT}}{{WE}}{{LON}}",
-            endianness: "big",
-            uppercaseName: true,
-            overlap: false
-        }
-    }
-};
-```
-
-Then create an instance of App, and invoke .render() method:
-
-```js
-define(['App', 'params'], function (App, params) {
+define(['DemHeightmap'], function (DemHeightmap) {
     requirejs(['domReady!'], function (document) {
-        var app = new App(document, params.google.API_KEY, 'hgt');
-        app.render(45.976581, 7.658447); // Matterhorn coordinates
+        
+        var configuration = { /* ... */ }
+        
+        var dh = new DemHeightmap(configuration);
+        dh.render(45.976581, 7.658447); // Matterhorn coordinates
+        
     });
 });
 ```
 
-### Params
+### Configuration object
 
-#### App()
 ```js
-var app = new App(document, GOOGLE_API_KEY, selected_dem_format)
+/**
+ * @param {Object} configuration {
+ *     demType,                 // {String}, selected type, one of keys of this.dem object.                                                     // Default: 'hgt'
+ *     googleApiKey,            // {String}, your google API key, mandatory if this.render.type == "texture".
+ *     dem: {                   // {Object}, describes where retrieve dem files, where each key is a demType. Mandatory.
+ *         KEY: {               // {Object}, key of single configuration, referred by this.demType
+ *             format,          // {String}, file extension.
+ *             folder,          // {String}, files folder.
+ *             filename,        // {String}, filename pattern, with "{{NS}}", "{{LAT}}", "{{WE}}", "{{LON}}" as vars: see example.
+ *             endianness,      // {String}, endianness of file. Allowed values: "little", "big".
+ *             uppercaseName,   // {boolean}, specifies if filenames are in uppercase.
+ *             overlap          // {boolean}, specifies if dem files overlap on last row/column (usually they do).
+ *         }
+ *     },
+ *     render: {                // {Object}, configuration for render
+ *         zoom,                // {Integer}, defines area dimension, like in Google® map. Allowed values: `11` to `20`.                        // Default: 12
+ *         detailsLevel,        // {Integer}, defines details of Google® textures. Allowed values: `0` to `4`.                                  // Default: 0
+ *         textureType,         // {String}, defines type of texture. Allowed values: 'terrain', 'satellite', 'roadmap', 'hybrid' from Google®. // Default: 'satellite'
+ *         size,                // {Integer}, defines size in px of single texture, from Google®. Max allowed value 640.                        // Default: 512
+ *         scaleFactor:         // {Number}, defines rescalation of elevations.                                                                 // Default: 1
+ *         withAnimation,       // {boolean}, if true map elevation is animated.                                                                // Default: true
+ *         type,                // {String}, defines type of rendering: Allowed values: 'texture', 'grid', 'points'.                            // Default: 'texture'
+ *         output: {            // {Object}, configuration for render output
+ *             width,           // {Integer} width of rendered map.                                                                             // Default: document.width - 20
+               height,          // {Integer} height of rendered map.                                                                            // Default: document.height - 20
+ *             htmlEl:          // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
+ *         }
+ *     }
+ * }
 ```
 
-where `selected_dem_format` is a string with dem to use, configured in `params.js`.
+#### .render(LAT, LON[, renderConfig])
 
-#### .render(LAT, LON[, params])
-`LAT`, `LON`: Numbers, center coordinates.
+`DemHeightmap#render` method accepts three parameters:
 
-`params` is an object with properties:
+`LAT`, `LON`: Numbers, center coordinates, mandatories.
 
-- `zoom`: Integer, value `11` to `20`, defines area dimension, like in Google® map. Default: `12`.
-
-- `detailsLevel`: Integer, value `0` to `4`, defines details of Google® textures. Default: `0`.
-
-- `size`: Integer, defines size in px of single texture. Max value 640, from Google®. Default: `512`.
-
-- `scaleFactor`: Number, defines rescalation of elevations. Default: `1`.
-
-- `withAnimation`: Boolean, if true map elevation is animated. Default: `false`.
-
-- `textureType`: String, `'terrain'`, `'satellite'`, `'roadmap'`, `'hybrid'` from Google®. Default: `'satellite'`.
-
-- `type`: String, one between `'texture'`, `'grid'`, `'points'`. Default: `'texture'`
+`renderConfig` an object with **same** structure of `mainConfiguration.render` passed to constructor: if present general `render` configuration will be overriden.
 
 ### Other
 

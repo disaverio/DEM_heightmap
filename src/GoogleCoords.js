@@ -24,7 +24,13 @@
 
 "use strict";
 
-define([], function () {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define([], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.GoogleCoords = factory();
+    }
+})(this, function () {
 
     function GoogleCoords() {
         this.TILE_SIZE = 256;

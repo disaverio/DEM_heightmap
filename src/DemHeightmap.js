@@ -24,7 +24,13 @@
 
 "use strict";
 
-define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 'utils'], function (THREE, OrbitControls, Dem, GoogleTexture, Texture, async, utils) {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 'utils'], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.DemHeightmap = factory(global.DH.threejs, global.DH.OrbitControls, global.DH.Dem, global.DH.GoogleTexture, global.DH.Texture, global.DH.async, global.DH.utils);
+    }
+})(this, function (THREE, OrbitControls, Dem, GoogleTexture, Texture, async, utils) {
 
     function onMouseMove(mouse, renderer, camera, mapInfo, raycaster, event) {
 
@@ -225,10 +231,12 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 
         }
     }
 
-    function createScene(document) {
+    function createScene(outputParams) {
 
-        var windowWidth  = utils.getWidth(document);
-        var windowHeight = utils.getHeight(document);
+        var document = window.document;
+
+        var windowWidth = outputParams.width || utils.getWidth(document) - 20;
+        var windowHeight = outputParams.height || utils.getHeight(document) - 20;
 
         var scene = new THREE.Scene();
 
@@ -239,7 +247,7 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 
         camera.position.set(1.4, 1/2, 1.4);
 
         var renderer = new THREE.WebGLRenderer();
-        renderer.setSize(windowWidth-20, windowHeight-20);
+        renderer.setSize(windowWidth, windowHeight);
 
         scene.add(new THREE.AmbientLight(0x8C8C8C));
 
@@ -251,7 +259,7 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 
 
         var controls = new THREE.OrbitControls(camera);
 
-        var container = document.getElementById('container').appendChild(renderer.domElement);
+        var container = document.getElementById(outputParams.htmlEl).appendChild(renderer.domElement);
 
         return {
             scene: scene,
@@ -262,77 +270,113 @@ define(['threejs', 'OrbitControls', 'Dem', 'GoogleTexture', 'Texture', 'async', 
         }
     }
 
-    function App(document, googleApiKey, demType) {
-        this.document = document;
-        this.dem = new Dem(demType);
-        this.gTexture = new GoogleTexture(googleApiKey);
+    function DemHeightmap(configuration) {
+
+        // set default values
+        configuration = configuration || {};
+        configuration.demType = configuration.demType || 'hgt';
+        this.renderConfig = configuration.render || {};
+        this.renderConfig.zoom = this.renderConfig.zoom || 12;
+        this.renderConfig.size = this.renderConfig.size || 512;
+        this.renderConfig.scaleFactor = this.renderConfig.scaleFactor || 1;
+        this.renderConfig.detailsLevel = this.renderConfig.detailsLevel || 0;
+        this.renderConfig.textureType = this.renderConfig.textureType || 'satellite';
+        this.renderConfig.withAnimation = this.renderConfig.withAnimation != false;
+        this.renderConfig.type = this.renderConfig.type || 'texture';
+        this.renderConfig.output = this.renderConfig.output || {};
+        this.renderConfig.output.width = this.renderConfig.output.width || undefined;
+        this.renderConfig.output.height = this.renderConfig.output.height || undefined;
+        this.renderConfig.output.htmlEl = this.renderConfig.output.htmlEl || 'map-container';
+
+        if (this.renderConfig.type == 'texture' && !configuration.googleApiKey) throw new Error("Missing Google API key");
+
+        this.dem = new Dem(configuration.demType, configuration.dem);
+        this.gTexture = new GoogleTexture(configuration.googleApiKey);
         this.texture = new Texture();
     }
 
-    App.prototype.render = function(lat, lon, params) {
+    DemHeightmap.prototype.render = function(lat, lon, params) {
+
+        var deferred = async.defer();
 
         params = params || {};
 
         params.zoom = params.zoom > 20 ? 20 :
                       params.zoom < 11 ? 11 :
-                                         (params.zoom || 12);
-        params.size = params.size || 512;
-        params.scaleFactor = params.scaleFactor || 1;
+                                         (params.zoom || this.renderConfig.zoom);
+        params.size = params.size || this.renderConfig.size;
+        params.scaleFactor = params.scaleFactor || this.renderConfig.scaleFactor;
         params.detailsLevel = params.detailsLevel > 4 ? 4 :
                               params.detailsLevel < 0 ? 0 :
-                                                        (params.detailsLevel || 0);
-        params.textureType = params.textureType || "satellite";
-        params.withAnimation = params.withAnimation != false;
-        params.type = params.type || 'texture';
+                                                        (params.detailsLevel || this.renderConfig.detailsLevel);
+        params.textureType = params.textureType || this.renderConfig.textureType;
+        params.withAnimation = params.hasOwnProperty('withAnimation') ? params.withAnimation != false : this.renderConfig.withAnimation;
+        params.type = params.type || this.renderConfig.type;
 
         var latLon = {
             lat: lat,
             lon: lon
         };
 
-        var sceneVertices = this.gTexture.getTextureVerticesCoords(latLon, params.zoom, params.size);
-        var coordsLimits = {
-            topLat: sceneVertices.tl.lat,
-            botLat: sceneVertices.br.lat,
-            leftLon: sceneVertices.tl.lon,
-            rightLon: sceneVertices.br.lon
-        };
+        try {
+            var sceneVertices = this.gTexture.getTextureVerticesCoords(latLon, params.zoom, params.size);
+            var coordsLimits = {
+                topLat: sceneVertices.tl.lat,
+                botLat: sceneVertices.br.lat,
+                leftLon: sceneVertices.tl.lon,
+                rightLon: sceneVertices.br.lon
+            };
 
-        var allPromises = [];
+            var allPromises = [];
 
-        allPromises.push(this.dem.getDem(coordsLimits));
+            allPromises.push(this.dem.getDem(coordsLimits));
 
-        if (params.type == 'texture') {
-            allPromises.push(this.gTexture.load(latLon, params.zoom, params.size, params.detailsLevel, params.textureType));
+            if (params.type == 'texture') {
+                allPromises.push(this.gTexture.load(latLon, params.zoom, params.size, params.detailsLevel, params.textureType));
+            }
+
+            var outputConfig = {
+                width: (params.output || {}).width || this.renderConfig.output.width,
+                height: (params.output || {}).height || this.renderConfig.output.height,
+                htmlEl: (params.output || {}).htmlEl || this.renderConfig.output.htmlEl
+            };
+            var scene = createScene(outputConfig);
+
+            async.all(allPromises)
+                .then((function (response) {
+
+                    var texture = response[1] ? this.texture.combineTextures(response[1]) : undefined;
+                    var mapInfo = renderMap(params.type, scene.scene, texture, response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat);
+
+                    scene.container.addEventListener('mousemove', onMouseMove.bind(null, new THREE.Vector2(), scene.renderer, scene.camera, mapInfo, new THREE.Raycaster()), false);
+
+                    var completed = false;
+                    var increment;
+                    if (params.withAnimation) increment = 0.05;
+                    else increment = 1;
+                    var incrementRescale = 0.95;
+                    (function render() {
+                        if (!completed) {
+                            completed = setElevations(increment);
+                            increment = increment * incrementRescale;
+                        }
+                        scene.controls.update();
+                        requestAnimationFrame(render);
+                        scene.renderer.render(scene.scene, scene.camera);
+                    })();
+                }).bind(this))
+                .then(function() {
+                    deferred.resolve();
+                })
+                .catch(function(error) {
+                    deferred.reject(error);
+                });
+        } catch (error) {
+            deferred.reject(error);
         }
 
-        var scene = createScene(this.document);
-
-        async.all(allPromises)
-            .then((function(response) {
-
-                var texture = response[1] ? this.texture.combineTextures(response[1]) : undefined;
-                var mapInfo = renderMap(params.type, scene.scene, texture, response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat);
-
-                scene.container.addEventListener('mousemove', onMouseMove.bind(null, new THREE.Vector2(), scene.renderer, scene.camera, mapInfo, new THREE.Raycaster()), false);
-
-                var completed = false;
-                var increment;
-                if (params.withAnimation) increment = 0.05;
-                else increment = 1;
-                var portionIncrement = 0.95;
-                (function render() {
-                    if (!completed) {
-                        completed = setElevations(increment);
-                        increment = increment * portionIncrement;
-                    }
-                    scene.controls.update();
-                    requestAnimationFrame(render);
-                    scene.renderer.render(scene.scene, scene.camera);
-                })();
-            }).bind(this))
-            .catch(console.log);
+        return deferred.promise;
     };
 
-    return App;
+    return DemHeightmap;
 });

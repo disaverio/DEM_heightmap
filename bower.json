@@ -1,5 +1,5 @@
 {
-  "name": "dem-threejs",
+  "name": "dem-heightmap",
   "description": "Dem to threejs render",
   "main": [],
   "authors": [
@@ -22,10 +22,11 @@
     "dem",
     "threejs"
   ],
-  "moduleType": [],
-  "dependencies": {
-    "requirejs": "^2.3.5",
-    "domReady": "^2.0.1",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "devDependencies": {
     "three.js": "threejs#*"
   },
   "repository": {}

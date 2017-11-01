@@ -24,7 +24,13 @@
 
 "use strict";
 
-define([], function () {
+(function(global, factory) {
+    if (typeof define === 'function' && define.amd) define([], factory);
+    else {
+        global.DH = global.DH || {};
+        global.DH.utils = factory();
+    }
+})(this, function () {
 
     function replace(str, map) {
         for (var key in map) {
