@@ -22,7 +22,7 @@ Terrain texture, from South-East:
 
 ## Use
 
-Since `three.js` lib is bundled in compiled file, all you have to do is include `DemHeightmap.js` with a direct include in html page or with an AMD loader.
+Since `three.js` lib is bundled in compiled file, all you have to do is include `dist/DemHeightmap.js` with a direct include in html page or with an AMD loader.
 
 Then create an instance of `DemHeightmap` passing it a configuration object, and invoke `.render()` method:
 
@@ -44,33 +44,37 @@ define(['DemHeightmap'], function (DemHeightmap) {
 ```js
 /**
  * @param {Object} configuration {
- *     demType,                 // {String}, selected type, one of keys of this.dem object.                                                     // Default: 'hgt'
- *     googleApiKey,            // {String}, your google API key, mandatory if this.render.type == "texture".
- *     dem: {                   // {Object}, describes where retrieve dem files, where each key is a demType. Mandatory.
- *         KEY: {               // {Object}, key of single configuration, referred by this.demType
- *             format,          // {String}, file extension.
- *             folder,          // {String}, files folder.
- *             filename,        // {String}, filename pattern, with "{{NS}}", "{{LAT}}", "{{WE}}", "{{LON}}" as vars: see example.
- *             endianness,      // {String}, endianness of file. Allowed values: "little", "big".
- *             uppercaseName,   // {boolean}, specifies if filenames are in uppercase.
- *             overlap          // {boolean}, specifies if dem files overlap on last row/column (usually they do).
+ *     demType,                     // {String}, selected type, one of keys of this.dem object.                                                     // Default: 'hgt'
+ *     googleApiKey,                // {String}, your google API key, mandatory if this.render.type == "texture".
+ *     dem: {                       // {Object}, describes where retrieve dem files, where each key is a demType. Mandatory.
+ *         KEY: {                   // {Object}, key of single configuration, referred by this.demType
+ *             format,              // {String}, file extension.
+ *             folder,              // {String}, files folder.
+ *             filename,            // {String}, filename pattern, with "{{NS}}", "{{LAT}}", "{{WE}}", "{{LON}}" as vars: see example.
+ *             endianness,          // {String}, endianness of file. Allowed values: "little", "big".
+ *             uppercaseName,       // {Boolean}, specifies if filenames are in uppercase.
+ *             overlap              // {Boolean}, specifies if dem files overlap on last row/column (usually they do).
  *         }
  *     },
- *     render: {                // {Object}, configuration for render
- *         zoom,                // {Integer}, defines area dimension, like in Google® map. Allowed values: `11` to `20`.                        // Default: 12
- *         detailsLevel,        // {Integer}, defines details of Google® textures. Allowed values: `0` to `4`.                                  // Default: 0
- *         textureType,         // {String}, defines type of texture. Allowed values: 'terrain', 'satellite', 'roadmap', 'hybrid' from Google®. // Default: 'satellite'
- *         size,                // {Integer}, defines size in px of single texture, from Google®. Max allowed value 640.                        // Default: 512
- *         scaleFactor:         // {Number}, defines rescalation of elevations.                                                                 // Default: 1
- *         withAnimation,       // {boolean}, if true map elevation is animated.                                                                // Default: true
- *         type,                // {String}, defines type of rendering: Allowed values: 'texture', 'grid', 'points'.                            // Default: 'texture'
- *         output: {            // {Object}, configuration for render output
- *             width,           // {Integer} width of rendered map.                                                                             // Default: document.width - 20
-               height,          // {Integer} height of rendered map.                                                                            // Default: document.height - 20
- *             htmlEl:          // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
+ *     render: {                    // {Object}, configuration for render
+ *         zoom,                    // {Integer}, defines area dimension, like in Google® map. Allowed values: `11` to `20`.                        // Default: 12
+ *         detailsLevel,            // {Integer}, defines details of Google® textures. Allowed values: `0` to `4`.                                  // Default: 0
+ *         textureType,             // {String}, defines type of texture. Allowed values: 'terrain', 'satellite', 'roadmap', 'hybrid' from Google®. // Default: 'satellite'
+ *         size,                    // {Integer}, defines size in px of single texture, from Google®. Max allowed value 640.                        // Default: 512
+ *         scaleFactor:             // {Number}, defines rescalation of elevations.                                                                 // Default: 1
+ *         withAnimation,           // {Boolean}, specifies if map elevation is animated.                                                           // Default: true
+ *         type,                    // {String}, defines type of rendering: Allowed values: 'texture', 'grid', 'points'.                            // Default: 'texture'
+ *         output: {                // {Object}, configuration for render output
+ *             width,               // {Integer} width of rendered map.                                                                             // Default: document.width - 20
+ *             height,              // {Integer} height of rendered map.                                                                            // Default: document.height - 20
+ *             mapContainer:        // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
+ *             showElevation        // {Boolean}, specifies if elevation is shown on mouse move                                                     // Default: false
+ *             elevationText        // {String}, text to prepend to elevation, in elevationContainer element
+ *             elevationContainer   // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
  *         }
  *     }
  * }
+ */
 ```
 
 #### .render(LAT, LON[, renderConfig])

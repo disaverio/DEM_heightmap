@@ -32,7 +32,7 @@
     }
 })(this, function (THREE, OrbitControls, Dem, GoogleTexture, Texture, async, utils) {
 
-    function onMouseMove(mouse, renderer, camera, mapInfo, raycaster, event) {
+    function onMouseMove(mouse, renderer, camera, mapInfo, raycaster, output, event) {
 
         mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
@@ -41,7 +41,10 @@
         var intersect = raycaster.intersectObject(mapInfo.mesh);
 
         if (intersect.length > 0) {
-            console.log((intersect[0].point.y / mapInfo.scaleFactor + mapInfo.minMax.min.value));
+            var elevation = Math.round(intersect[0].point.y / mapInfo.scaleFactor + mapInfo.minMax.min.value);
+            document.getElementById(output.elevationContainer).textContent = output.elevationText + elevation;
+        } else {
+            document.getElementById(output.elevationContainer).textContent = output.elevationText;
         }
     }
 
@@ -259,7 +262,7 @@
 
         var controls = new THREE.OrbitControls(camera);
 
-        var container = document.getElementById(outputParams.htmlEl).appendChild(renderer.domElement);
+        var container = document.getElementById(outputParams.mapContainer).appendChild(renderer.domElement);
 
         return {
             scene: scene,
@@ -286,7 +289,9 @@
         this.renderConfig.output = this.renderConfig.output || {};
         this.renderConfig.output.width = this.renderConfig.output.width || undefined;
         this.renderConfig.output.height = this.renderConfig.output.height || undefined;
-        this.renderConfig.output.htmlEl = this.renderConfig.output.htmlEl || 'map-container';
+        this.renderConfig.output.mapContainer = this.renderConfig.output.mapContainer || 'map-container';
+        this.renderConfig.output.showElevation = this.renderConfig.output.showElevation == true;
+        this.renderConfig.output.elevationText = this.renderConfig.output.elevationText || '';
 
         if (this.renderConfig.type == 'texture' && !configuration.googleApiKey) throw new Error("Missing Google API key");
 
@@ -338,8 +343,23 @@
             var outputConfig = {
                 width: (params.output || {}).width || this.renderConfig.output.width,
                 height: (params.output || {}).height || this.renderConfig.output.height,
-                htmlEl: (params.output || {}).htmlEl || this.renderConfig.output.htmlEl
+                mapContainer: (params.output || {}).mapContainer || this.renderConfig.output.mapContainer
             };
+
+            var showEl = {};
+            if ((params.output || {}).showElevation == true || this.renderConfig.output.showElevation) {
+
+                var elContainer = (params.output || {}).elevationContainer || this.renderConfig.output.elevationContainer;
+                var elText = (params.output || {}).elevationText || this.renderConfig.output.elevationText;
+
+                if (!elContainer) throw new Error("Missing name of html element for elevation");
+
+                document.getElementById(elContainer).textContent = elText;
+                showEl.elevationContainer = elContainer;
+                showEl.elevationText = elText;
+            }
+
+
             var scene = createScene(outputConfig);
 
             async.all(allPromises)
@@ -348,7 +368,7 @@
                     var texture = response[1] ? this.texture.combineTextures(response[1]) : undefined;
                     var mapInfo = renderMap(params.type, scene.scene, texture, response[0], params.scaleFactor, coordsLimits.topLat - coordsLimits.botLat);
 
-                    scene.container.addEventListener('mousemove', onMouseMove.bind(null, new THREE.Vector2(), scene.renderer, scene.camera, mapInfo, new THREE.Raycaster()), false);
+                    scene.container.addEventListener('mousemove', onMouseMove.bind(null, new THREE.Vector2(), scene.renderer, scene.camera, mapInfo, new THREE.Raycaster(), showEl), false);
 
                     var completed = false;
                     var increment;
