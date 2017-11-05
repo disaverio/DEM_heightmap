@@ -68,12 +68,6 @@ define(['DemHeightmap'], function (DemHeightmap) {
                 document.getElementsByClassName("loader-wrapper")[0].style.display = "none";
                 document.getElementById("map-container").style.display = "block";
                 document.getElementById("el-container").style.display = "block";
-                document.getElementById("el-container").style.position = "absolute";
-                document.getElementById("el-container").style.top = "10px";
-                document.getElementById("el-container").style.left = "10px";
-                document.getElementById("el-container").style.padding = "10px 20px";
-                document.getElementById("el-container").style.color = "#FFF";
-                document.getElementById("el-container").style.background = "rgba(0, 0, 0, 0.5)";
             })
             .catch(function(error) {
                 console.log(error);

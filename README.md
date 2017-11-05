@@ -67,10 +67,10 @@ define(['DemHeightmap'], function (DemHeightmap) {
  *         output: {                // {Object}, configuration for render output
  *             width,               // {Integer} width of rendered map.                                                                             // Default: document.width - 20
  *             height,              // {Integer} height of rendered map.                                                                            // Default: document.height - 20
- *             mapContainer:        // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
+ *             mapContainer:        // {String}, id of html element where map will be rendered in.                                                  // Default: 'map-container'
  *             showElevation        // {Boolean}, specifies if elevation is shown on mouse move                                                     // Default: false
  *             elevationText        // {String}, text to prepend to elevation, in elevationContainer element
- *             elevationContainer   // {String}, id of html element where map will be rendered.                                                     // Default: 'map-container'
+ *             elevationContainer   // {String}, id of html element where elevation will be printed in. Mandatory if 'showElevation' is true.
  *         }
  *     }
  * }

@@ -6,6 +6,18 @@
 
         <script src="../bower_components/requirejs/require.js" data-main="config.js"></script>
 
+        <style>
+            #el-container {
+                display: none;
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                padding: 10px 20px;
+                color: #FFF;
+                background: rgba(0, 0, 0, 0.5);
+            }
+            #map-container { display: none; }
+        </style>
     </head>
     <body>
         <!-- Loader by: Jonathan Silva - Url: https://portfolio.jonathansilva.com.br -->
@@ -23,7 +35,7 @@
                 <div class="roller"></div>
             </div>
         </div>
-        <div id="el-container" style="display: none;"></div>
+        <div id="el-container"></div>
         <div id="map-container" style="display: none;"></div>
     </body>
 </html>
